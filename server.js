@@ -8,12 +8,12 @@ const app = express();
 app.use(cors());
 const PORT = process.env.PORT || 3001;
 const { bookSchema, bookModel } = require('./schemas/bookSchema');
-// const dummyData = require('./dummyData/booksData.json')
+
 
 //connecting
 app.listen(PORT, () => console.log(`${PORT} Radio!!`));
 
-mongoose.connect('mongodb://localhost:27017/booksApp', { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(process.env.DB_PORT, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
     console.log("CONNECTION OPEN!!!")
   })
