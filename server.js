@@ -6,6 +6,7 @@ const cors = require('cors');
 const mongoose = require('mongoose')
 const app = express();
 app.use(cors());
+app.use(express.json())
 const PORT = process.env.PORT || 3001;
 const { bookSchema, bookModel } = require('./schemas/bookSchema');
 
@@ -25,11 +26,12 @@ mongoose.connect(process.env.DB_PORT, { useNewUrlParser: true, useUnifiedTopolog
 
 
 //Routes
-app.get('/test', (request, response) => {
-  response.send('test request received')
-})
-
-app.get('/books', getBooks)
+app.get('/', (req, res) => res.send('welcome!'))
+app.get('/book', getBooks)
+app.post('/book', postBooks)
+app.delete('/book/:id', deletBook)
+app.put('/book/:id', updateBook);
+app.get('/book/:id', findBookById);
 
 
 //functions
@@ -39,28 +41,47 @@ function getBooks(req, res) {
     else res.send(data);
   })
 }
-//testing Schemas and models
-// const bookSchema = new mongoose.Schema({
-//   title: String,
-//   description: String,
-//   status: String,
-// })
 
-// const testBook = new bookModel({
-//   name: "test book",
-//   description: 'a book to test the model YAY!',
-//   status: 'something something status'
-// })
+function postBooks(req, res) {
+  console.log(req.body)
+  const { data } = req.body;
+  const newBook = new bookModel(data)
+  try {
+    newBook.save().then(
+      res.status(201).json(newBook)
+    )
+  } catch (error) {
+    console.log('OH NOO!', error)
+  }
+}
 
-// testBook.save()
+function deletBook(req, res) {
+  const id = req.params.id;
+  bookModel.findByIdAndDelete(id).then(record => {
+    res.send(record);
+  }).catch(err => {
+    console.log(err)
+    res.status(500).send(err.message);
+  })
+}
 
-//filling dummyData (run once)
-// dummyData.forEach((book) => {
-//   const testBook = new bookModel({
-//     title: book.title,
-//     description: book.longDescription,
-//     status: book.status,
-//     thumbnail: book.thumbnailUrl
-//   })
-//   testBook.save()
-// })
+function updateBook(req, res) {
+  const id = req.params.id;
+  const { data } = req.body;
+  console.log(req.body)
+
+  bookModel.findByIdAndUpdate(id, data, { new: true }).then(record => {
+    res.send(record);
+  }).catch(err => {
+    console.log(err)
+    res.status(500).send(err.message);
+  })
+}
+
+function findBookById(req, res) {
+  const id = req.params.id;
+  bookModel.findById(id, (error, data) => {
+    if (error) console.log(`Book not found ${error}`);
+    else res.send(data);
+  })
+}
